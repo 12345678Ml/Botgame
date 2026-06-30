@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>Emoji Game</title>
+
+<style>
+body {
+    font-family: Arial;
+    text-align: center;
+    background: #111;
+    color: white;
+}
+
+.box {
+    margin-top: 100px;
+}
+
+.emoji {
+    font-size: 50px;
+    margin: 20px;
+}
+
+input {
+    padding: 10px;
+    font-size: 18px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 18px;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+    <h1>🎮 خمن الكلمة</h1>
+
+    <div id="question" class="emoji"></div>
+
+    <input id="answer" placeholder="اكتب الجواب">
+    <br><br>
+
+    <button onclick="checkAnswer()">تحقق</button>
+
+    <p id="result"></p>
+    <p id="score">النقاط: 0</p>
+</div>
+
+<script>
+
+let questions = [
+    { q: "🐈 + ر", a: "قطر" },
+    { q: "🌙 + ر", a: "قمر" },
+    { q: "🔥 + ب", a: "لهب" },
+    { q: "🐍 + ة", a: "حية" },
+    { q: "🦁 + ل", a: "ليل" }
+];
+
+let current = 0;
+let score = 0;
+
+function loadQuestion() {
+    document.getElementById("question").innerText = questions[current].q;
+}
+
+function checkAnswer() {
+    let user = document.getElementById("answer").value.trim();
+
+    if (user === questions[current].a) {
+        document.getElementById("result").innerText = "✅ صح!";
+        score++;
+    } else {
+        document.getElementById("result").innerText = "❌ غلط! الجواب: " + questions[current].a;
+    }
+
+    document.getElementById("score").innerText = "النقاط: " + score;
+
+    current++;
+
+    if (current < questions.length) {
+        setTimeout(() => {
+            document.getElementById("answer").value = "";
+            document.getElementById("result").innerText = "";
+            loadQuestion();
+        }, 1500);
+    } else {
+        document.getElementById("question").innerText = "🎉 انتهت اللعبة!";
+    }
+}
+
+loadQuestion();
+
+</script>
+
+</body>
+</html>
