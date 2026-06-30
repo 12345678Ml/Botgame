@@ -2,95 +2,162 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة الإيموجي</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎮 خمن الكلمة</title>
+    <script src="https://telegram.org/js/games.js"></script>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: Arial;
             text-align: center;
             background: #1a1a2e;
             color: white;
-            padding: 50px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        .emoji {
-            font-size: 60px;
-            margin: 30px;
+        .box {
+            background: #16213e;
+            padding: 40px 30px;
+            border-radius: 30px;
+            max-width: 500px;
+            width: 90%;
         }
+        h1 { color: #f5c842; margin-bottom: 10px; }
+        .emoji { font-size: 60px; margin: 30px 0; }
         input {
             padding: 15px;
             font-size: 20px;
-            border-radius: 10px;
+            border-radius: 15px;
             border: none;
-            width: 200px;
+            width: 80%;
             text-align: center;
+            background: #1a1a2e;
+            color: white;
+            border: 2px solid #f5c842;
         }
         button {
-            padding: 15px 30px;
+            padding: 15px 40px;
             font-size: 20px;
             background: #f5c842;
             border: none;
-            border-radius: 10px;
+            border-radius: 15px;
             cursor: pointer;
-            margin: 10px;
+            margin: 15px;
+            font-weight: bold;
         }
-        #result {
-            font-size: 24px;
-            margin: 20px;
-        }
-        #score {
-            font-size: 20px;
-            color: #f5c842;
-        }
+        #result { font-size: 22px; margin: 15px; min-height: 40px; }
+        #score { font-size: 20px; color: #f5c842; }
+        .correct { color: #4caf50; }
+        .wrong { color: #ff6b6b; }
     </style>
 </head>
 <body>
 
+<div class="box">
     <h1>🎮 خمن الكلمة</h1>
     <div class="emoji" id="emoji">🐈 + ر</div>
-    <input id="answer" placeholder="اكتب الجواب">
+    <input id="answer" placeholder="اكتب الجواب...">
     <br>
-    <button onclick="check()">تحقق</button>
+    <button onclick="check()">🚀 تحقق</button>
     <div id="result"></div>
     <div id="score">⭐ النقاط: 0</div>
+    <p style="color:#666;font-size:14px;margin-top:15px;" id="counter">السؤال 1 من 30</p>
+</div>
 
-    <script>
-        const questions = [
-            { q: "🐈 + ر", a: "قطر" },
-            { q: "🌙 + ر", a: "قمر" },
-            { q: "🔥 + ب", a: "لهب" }
-        ];
+<script>
+// ============================================================
+// 🎯 الأسئلة (30 سؤال)
+// ============================================================
+const questions = [
+    { q: "🐈 + ر", a: "قطر" },
+    { q: "🌙 + ر", a: "قمر" },
+    { q: "🔥 + ب", a: "لهب" },
+    { q: "🐍 + ة", a: "حية" },
+    { q: "🦁 + ل", a: "ليل" },
+    { q: "🐪 + ب", a: "جمل" },
+    { q: "🍎 + ه", a: "تفاحة" },
+    { q: "🐶 + ب", a: "كلب" },
+    { q: "🐱 + ط", a: "قط" },
+    { q: "🌊 + ح", a: "بحر" },
+    { q: "☀️ + س", a: "شمس" },
+    { q: "🌸 + ر", a: "زهرة" },
+    { q: "🌴 + خ", a: "نخلة" },
+    { q: "🐴 + ص", a: "حصان" },
+    { q: "🦅 + ن", a: "نسر" },
+    { q: "🐟 + ك", a: "سمكة" },
+    { q: "🐦 + ع", a: "عصفور" },
+    { q: "🐝 + ل", a: "نحلة" },
+    { q: "🐌 + ز", a: "حلزون" },
+    { q: "🦋 + ر", a: "فراشة" },
+    { q: "🐞 + خ", a: "خنفساء" },
+    { q: "🦉 + ب", a: "بومة" },
+    { q: "🦇 + ط", a: "خفاش" },
+    { q: "🐊 + م", a: "تمساح" },
+    { q: "🦈 + ق", a: "قرش" },
+    { q: "🐳 + ح", a: "حوت" },
+    { q: "🐧 + ط", a: "بطريق" },
+    { q: "🦒 + ز", a: "زرافة" },
+    { q: "🐘 + ف", a: "فيل" },
+    { q: "🦍 + ق", a: "غوريلا" }
+];
 
-        let current = 0;
-        let score = 0;
+// ============================================================
+// 🎮 منطق اللعبة
+// ============================================================
+let current = 0;
+let score = 0;
+let answered = false;
 
-        function load() {
-            document.getElementById("emoji").textContent = questions[current].q;
-            document.getElementById("answer").value = "";
-            document.getElementById("result").textContent = "";
-        }
+function load() {
+    if (current >= questions.length) {
+        document.getElementById("emoji").textContent = "🎉🎊 انتهت!";
+        document.getElementById("counter").textContent = "مبروك 🏆";
+        document.getElementById("answer").disabled = true;
+        return;
+    }
+    document.getElementById("emoji").textContent = questions[current].q;
+    document.getElementById("counter").textContent = `السؤال ${current + 1} من ${questions.length}`;
+    document.getElementById("answer").value = "";
+    document.getElementById("result").textContent = "";
+    document.getElementById("answer").disabled = false;
+    document.getElementById("answer").focus();
+    answered = false;
+}
 
-        function check() {
-            let user = document.getElementById("answer").value.trim();
-            let correct = questions[current].a;
+function check() {
+    if (answered || current >= questions.length) return;
+    
+    let user = document.getElementById("answer").value.trim();
+    let correct = questions[current].a;
+    let result = document.getElementById("result");
 
-            if (user.toLowerCase() === correct.toLowerCase()) {
-                document.getElementById("result").textContent = "✅ صح!";
-                score++;
-            } else {
-                document.getElementById("result").textContent = "❌ غلط! الجواب: " + correct;
-            }
+    if (user.toLowerCase() === correct.toLowerCase()) {
+        result.textContent = "✅ صح! أحسنت 🎉";
+        result.className = "correct";
+        score++;
+    } else {
+        result.textContent = `❌ غلط! الجواب: ${correct}`;
+        result.className = "wrong";
+    }
 
-            document.getElementById("score").textContent = "⭐ النقاط: " + score;
-            current++;
+    document.getElementById("score").textContent = `⭐ النقاط: ${score}`;
+    answered = true;
+    current++;
 
-            if (current < questions.length) {
-                setTimeout(load, 1500);
-            } else {
-                document.getElementById("emoji").textContent = "🎉 انتهت اللعبة!";
-            }
-        }
-
+    setTimeout(() => {
         load();
-    </script>
+    }, 1500);
+}
+
+// Enter يرسل الإجابة
+document.getElementById("answer").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") check();
+});
+
+load();
+</script>
+
 </body>
 </html>
