@@ -1,98 +1,280 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-<meta charset="UTF-8">
-<title>Emoji Game</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 خمن الكلمة - Emoji Game</title>
 
-<style>
-body {
-    font-family: Arial;
-    text-align: center;
-    background: #111;
-    color: white;
-}
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-.box {
-    margin-top: 100px;
-}
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-.emoji {
-    font-size: 50px;
-    margin: 20px;
-}
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 40px 30px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
 
-input {
-    padding: 10px;
-    font-size: 18px;
-}
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #f5c842;
+        }
 
-button {
-    padding: 10px 20px;
-    font-size: 18px;
-    cursor: pointer;
-}
-</style>
+        .subtitle {
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .emoji-box {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 30px 20px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #question {
+            font-size: 60px;
+            line-height: 1.4;
+            word-break: break-all;
+        }
+
+        .input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        input {
+            padding: 14px 20px;
+            font-size: 18px;
+            border-radius: 15px;
+            border: 2px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.08);
+            color: white;
+            outline: none;
+            transition: 0.3s;
+            text-align: center;
+        }
+
+        input:focus {
+            border-color: #f5c842;
+            background: rgba(255,255,255,0.12);
+        }
+
+        input::placeholder {
+            color: #888;
+        }
+
+        button {
+            padding: 14px 30px;
+            font-size: 20px;
+            border: none;
+            border-radius: 15px;
+            background: #f5c842;
+            color: #1a1a2e;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: scale(1.03);
+            background: #ffd95e;
+        }
+
+        #result {
+            margin-top: 15px;
+            font-size: 20px;
+            min-height: 35px;
+            font-weight: bold;
+        }
+
+        .correct {
+            color: #4caf50;
+        }
+
+        .wrong {
+            color: #ff6b6b;
+        }
+
+        #score {
+            margin-top: 15px;
+            font-size: 18px;
+            color: #f5c842;
+        }
+
+        .hint-text {
+            color: #888;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="box">
+<div class="container">
     <h1>🎮 خمن الكلمة</h1>
+    <p class="subtitle">شوف الإيموجي وخمن الكلمة 📝</p>
 
-    <div id="question" class="emoji"></div>
+    <div class="emoji-box">
+        <div id="question">🐈 + ر</div>
+    </div>
 
-    <input id="answer" placeholder="اكتب الجواب">
-    <br><br>
+    <div class="input-area">
+        <input id="answer" placeholder="اكتب الجواب هنا..." autofocus>
+        <button onclick="checkAnswer()">🚀 تحقق</button>
+    </div>
 
-    <button onclick="checkAnswer()">تحقق</button>
-
-    <p id="result"></p>
-    <p id="score">النقاط: 0</p>
+    <div id="result"></div>
+    <div id="score">⭐ النقاط: 0</div>
+    <div id="question-number" class="hint-text">السؤال 1 من 30</div>
 </div>
 
+<script src="https://telegram.org/js/games.js"></script>
 <script>
 
+// ============================================================
+// 🎯 الأسئلة - 30 سؤال مع مرادفات
+// ============================================================
+
 let questions = [
-    { q: "🐈 + ر", a: "قطر" },
-    { q: "🌙 + ر", a: "قمر" },
-    { q: "🔥 + ب", a: "لهب" },
-    { q: "🐍 + ة", a: "حية" },
-    { q: "🦁 + ل", a: "ليل" }
+    { q: "🐈 + ر", a: "قطر", aliases: ["قطر"] },
+    { q: "🌙 + ر", a: "قمر", aliases: ["قمر"] },
+    { q: "🔥 + ب", a: "لهب", aliases: ["لهب"] },
+    { q: "🐍 + ة", a: "حية", aliases: ["حية"] },
+    { q: "🦁 + ل", a: "ليل", aliases: ["ليل"] },
+    { q: "🐪 + ب", a: "جمل", aliases: ["جمل"] },
+    { q: "🍎 + ه", a: "تفاحة", aliases: ["تفاحة", "تفاح"] },
+    { q: "🐶 + ب", a: "كلب", aliases: ["كلب"] },
+    { q: "🐱 + ط", a: "قط", aliases: ["قط", "قطة"] },
+    { q: "🌊 + ح", a: "بحر", aliases: ["بحر"] },
+    { q: "☀️ + س", a: "شمس", aliases: ["شمس"] },
+    { q: "🌸 + ر", a: "زهرة", aliases: ["زهرة"] },
+    { q: "🌴 + خ", a: "نخلة", aliases: ["نخلة"] },
+    { q: "🐴 + ص", a: "حصان", aliases: ["حصان"] },
+    { q: "🦅 + ن", a: "نسر", aliases: ["نسر"] },
+    { q: "🐟 + ك", a: "سمكة", aliases: ["سمكة", "سمك"] },
+    { q: "🐦 + ع", a: "عصفور", aliases: ["عصفور"] },
+    { q: "🐝 + ل", a: "نحلة", aliases: ["نحلة"] },
+    { q: "🐌 + ز", a: "حلزون", aliases: ["حلزون"] },
+    { q: "🦋 + ر", a: "فراشة", aliases: ["فراشة"] },
+    { q: "🐞 + خ", a: "خنفساء", aliases: ["خنفساء"] },
+    { q: "🦉 + ب", a: "بومة", aliases: ["بومة"] },
+    { q: "🦇 + ط", a: "خفاش", aliases: ["خفاش"] },
+    { q: "🐊 + م", a: "تمساح", aliases: ["تمساح"] },
+    { q: "🦈 + ق", a: "قرش", aliases: ["قرش"] },
+    { q: "🐳 + ح", a: "حوت", aliases: ["حوت"] },
+    { q: "🐧 + ط", a: "بطريق", aliases: ["بطريق"] },
+    { q: "🦒 + ز", a: "زرافة", aliases: ["زرافة"] },
+    { q: "🐘 + ف", a: "فيل", aliases: ["فيل"] },
+    { q: "🦍 + ق", a: "غوريلا", aliases: ["غوريلا"] }
 ];
+
+// ============================================================
+// 🎮 منطق اللعبة
+// ============================================================
 
 let current = 0;
 let score = 0;
 
 function loadQuestion() {
+    if (current >= questions.length) {
+        document.getElementById("question").innerText = "🎉🎊 انتهت اللعبة!";
+        document.getElementById("question-number").innerText = "مبروك! 🏆";
+        document.getElementById("answer").disabled = true;
+        return;
+    }
     document.getElementById("question").innerText = questions[current].q;
+    document.getElementById("question-number").innerText = `السؤال ${current + 1} من ${questions.length}`;
+    document.getElementById("answer").value = "";
+    document.getElementById("result").innerText = "";
+    document.getElementById("answer").disabled = false;
+    document.getElementById("answer").focus();
 }
 
 function checkAnswer() {
-    let user = document.getElementById("answer").value.trim();
+    if (current >= questions.length) return;
 
-    if (user === questions[current].a) {
-        document.getElementById("result").innerText = "✅ صح!";
-        score++;
+    let user = document.getElementById("answer").value.trim();
+    let q = questions[current];
+    let isCorrect = false;
+
+    // التحقق من الإجابة مع المرادفات
+    if (user.toLowerCase() === q.a.toLowerCase()) {
+        isCorrect = true;
     } else {
-        document.getElementById("result").innerText = "❌ غلط! الجواب: " + questions[current].a;
+        for (let alias of q.aliases) {
+            if (user.toLowerCase() === alias.toLowerCase()) {
+                isCorrect = true;
+                break;
+            }
+        }
     }
 
-    document.getElementById("score").innerText = "النقاط: " + score;
+    let resultDiv = document.getElementById("result");
+
+    if (isCorrect) {
+        resultDiv.innerText = "✅ صح! أحسنت 🎉";
+        resultDiv.className = "correct";
+        score++;
+    } else {
+        resultDiv.innerText = `❌ غلط! الجواب: ${q.a}`;
+        resultDiv.className = "wrong";
+    }
+
+    document.getElementById("score").innerText = `⭐ النقاط: ${score}`;
 
     current++;
 
     if (current < questions.length) {
         setTimeout(() => {
-            document.getElementById("answer").value = "";
-            document.getElementById("result").innerText = "";
             loadQuestion();
-        }, 1500);
+        }, 1800);
     } else {
-        document.getElementById("question").innerText = "🎉 انتهت اللعبة!";
+        setTimeout(() => {
+            loadQuestion();
+        }, 2000);
     }
 }
 
+// ============================================================
+// 🚀 تشغيل اللعبة
+// ============================================================
+
 loadQuestion();
+
+// الضغط على Enter يرسل الإجابة
+document.getElementById("answer").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+        checkAnswer();
+    }
+});
 
 </script>
 
